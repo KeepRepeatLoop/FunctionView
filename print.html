@@ -1,0 +1,112 @@
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<title></title>
+		<style type="text/css">
+			* {
+				margin: 0px;
+				padding: 0px;
+			}
+
+			html,
+			body {
+				width: 100%;
+				height: 100%;
+			}
+		</style>
+	</head>
+	<body>
+		<script src="FunctionPrinter.min.js" type="text/javascript" charset="utf-8"></script>
+		<div id="parent" style="width:100%;height:100%;pointer-events:all;">
+			<canvas id="cvs" width="800" height="800"></canvas>
+		</div>
+		<script type="text/javascript">
+			document.querySelector('#cvs').width = document.querySelector('#cvs').parentElement.offsetWidth
+			document.querySelector('#cvs').height = document.querySelector('#cvs').parentElement.offsetHeight
+
+
+
+			const fcp = new FunctionPrinter(document.querySelector("#cvs"), {
+				events: ['draw', 'zoom', 'showtip'],
+				mark: {
+					x: { // 针对于x轴，如果是y轴则为y 参数保持一致
+						line: {
+							accuracy: 30, // 每一个刻度之间相隔的距离 (单位:px)
+							lineWidth: 1.5, // 标注刻度的粗细
+							width: 10, // 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度
+							color: 'black' // 刻度颜色 这个颜色可以是rgba或者十六进制颜色或者是canvas颜	色渐变类
+						},
+						font: {
+							size: 14,
+							weight: 1.5
+						},
+						accuracy: 1
+					}
+				},
+				zoom: { // 缩放控制参数
+					max: 50, // 缩小程度最低值 d- 0
+					min: 10, // 放大程度最大值 d- 0
+					accuracy: 10 // 每次缩放增加或减少的步长
+				},
+				points: {
+					size: 3,
+					solid: 0
+				},
+				tipline: { // 轴线标识参数
+					color: 'auto', // 线段颜色,可以指定颜色也可以选择auto自适应颜色 d- auto
+					type: 'dotted', // 线段的种类。目前提供的有两种分别是 dotted：虚线 chain：点划线。也可以自定义配置见下文说明 d- [4,2]
+					width: 3, // 线段粗细 d- 3
+					animate: 0 // 是否开启动画 d- false
+				},
+				accuracy: 0.1
+			})
+
+
+			fcp.DrawFunction('y=2x+3', (x) => {
+				return 2 * x + 2
+			}, -1, 'red', null, 1.5, (x, y) => {
+				// console.log(x)
+				if (Number.isInteger(x)) {
+					return true
+				}
+			}, (key, color, x, y) => {
+				return {
+					key: key,
+					x,
+					y,
+					color
+				}
+			})
+			fcp.DrawFunction('y=-2x^2+3x+10', (x) => {
+				return -2 * x * x + 3 * x + 10
+			}, 'middle', 'orange', null, 1.5, (x, y) => {
+				if (Number.isInteger(x)) {
+					return true
+				}
+			}, (key, color, x, y) => {
+				return {
+					key: key,
+					x,
+					y,
+					color
+				}
+			})
+
+			fcp.DrawFunction('y=log(x)', function(x) {
+				return Math.log(x)
+			}, 'queue', 'blue', null, 1.5, (x, y) => {
+				if (Number.isInteger(x)) {
+					return true
+				}
+			}, (key, color, x, y) => {
+				return {
+					key,
+					x,
+					y,
+					color
+				}
+			})
+		</script>
+	</body>
+</html>
