@@ -233,6 +233,7 @@
 
 		既然已经有了悬浮窗提示但是可能不能够在图像上一目了然，接下来需要一个新的特性:轴线标识,能够更快的找到刻度对应点。
 		**** * 注： 这个也是需要开启点位标注才能打开的功能**
+
 		```javascript
 			const fcp = new FunctionPrinter(document.querySelector("#cvs"),{
 				events:['draw','zoom','showtip'],
@@ -269,6 +270,7 @@
 				// syncEle: window
 			})
 	 ```
+
 	 *更多线段种类 [参见canvas虚线样式](https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/setLineDash "线段样式")*
 	这样就更加显而易见了。当然也可以直接将animate开启动画使得图像更加生动~
 
