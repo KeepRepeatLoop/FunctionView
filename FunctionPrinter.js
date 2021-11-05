@@ -596,6 +596,8 @@
 				{
 					if(self.__line_opts.animate)
 						ScalePoint(select_point,radius + radius * 0.5,3000)()
+					else
+						ScalePoint(select_point,radius + radius * 0.5,1000)()
 					self.__ctx.setLineDash(self.__line_opts.type)
 					self.__ctx.lineDashOffset = offset
 					self.__ctx.lineWidth = self.__line_opts.width
