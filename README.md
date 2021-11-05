@@ -1,9 +1,9 @@
 # Math Function Printer
 ---
 
-### ** 没什么特别的就是一个简单的函数图像显示工具 **
+### **没什么特别的就是一个简单的函数图像显示工具**
 
-** *注意 : 注释中d- 后面的内容为该参数的默认值 **
+***注意 : 注释中d- 后面的内容为该参数的默认值**
 
 * ##### 导入模块 
 	
@@ -28,7 +28,7 @@
 
 
 * ##### 基本用法
-	1. #####初始化操作
+	1. ##### 初始化操作
 	
 		  new 就完事儿了。需要考虑的是FunctionPrinter构造函数中的两个参数分别是：
 		1. ** cvs: canvas 元素节点 (type: HTMLCanvasElement)**
@@ -302,16 +302,17 @@
 	2. **另外移动端的悬浮提示，轴刻度点击与函数图像拖动需要通过调用ChangeTouch进行切换。也就是说点击提示和拖动图像同时只能存在其中一个，默认是拖动图像**
 	3. **关于自适应，在new FunctionPrinter中可以配置syncEle参数可以是window或者是一个元素节点当检测到目标元素大小发生改变将重绘图像，以保证自适应**
 	
-- ** 关于极坐标函数 ：**
+- **关于极坐标函数：**
 
 	DrawFunction的第二个参数的返回值可以是一个Arrary，Arrary的第一个值是x轴，第二个是y轴。
 		
 	```javascript
-			fcp.DrawFunction('极坐标',(x)=>{
-			// 爱心函数
-			if(x > -1 && x < Math.PI*2)
-				return [16*Math.pow(Math.sin(x),3),13*Math.cos(x)-5*Math.cos(2*x)-2*Math.cos(3*x)-Math.cos(4*x)]
-			},'quick','red',null,1)
+	fcp.DrawFunction('极坐标',(x)=>{
+	// 爱心函数
+	if(x > -1 && x < Math.PI*2)
+		return [16*Math.pow(Math.sin(x),3),13*Math.cos(x)-5*Math.cos(2*x)-2*Math.cos(3*x)-Math.cos(4*x)]
+
+	},'quick','red',null,1)
 	```
 
 	这个时候你会发现可以是可以，但是画出来的线段有些顿，那是因为精度不够导致的问题。正好把最后遗漏的两个参数说明一下
