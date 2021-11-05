@@ -7,11 +7,11 @@
 
 * ##### 导入模块 
 	```javascript
-		import FunctionPrinter from 'FunctionPrinter'	
-		const FunctionPrinter = require('FunctionPrinter')
+		import FunctionPrinter from 'functionviewer'	
+		const FunctionPrinter = require('functionviewer')
 		
 		// 或者....
-		<script src="${projectUrl}/FunctionPrinter.js"></script>
+		<script src="${projectUrl}/FunctionPrinter.min.js"></script>
 	```
 	
 * ##### (假设有以下这样的一个代码)
