@@ -15,7 +15,7 @@
 		
 
 * ##### (假设有以下这样的一个代码)
-		```html
+  ```html
 			<body>
 			<div id="parent" style="width:100%;height:100%;" >
 				<canvas id="cvs" width="800" height="800"></canvas>
@@ -25,7 +25,7 @@
 				// 下面所说的代码都可在这儿编码并测试
 			</script>
 		</body>
-		```
+	```
 
 
 * ##### 基本用法
@@ -157,35 +157,37 @@
 		
 		介绍了x轴和y轴样式调整的方案，接下来函数图像本身也需要一个自定义样式可以美化或者区分各函数
 			
-			//需要用到DrawFunction函数的第3个参数和第4个参数,前面已经说明了参数的使用方式那我将一笔带过
-			fcp.DrawFunction('y=2x+3',(x)=>{
-					return 2 * x + 3
-			},-1,'red',null,3)
+		```javascript
+		//需要用到DrawFunction函数的第3个参数和第4个参数,前面已经说明了参数的使用方式那我将一笔带过
+		fcp.DrawFunction('y=2x+3',(x)=>{
+				return 2 * x + 3
+		},-1,'red',null,3)
+		```
 
 	7. ##### 点位标注
 	
 		有些时候光有一个函数图像线段没有办法知道重要点的坐标为了能够相对明显的观察图像，可以对一些重要点的坐标进行筛选并显示。接下来将介绍点位显示。
 			
 		```javascript
-			// 首先点位有自己的样式
-			const fcp = new FunctionPrinter(document.querySelector("#cvs"),{
-				events:['draw'],
-				points: { // 点位样式
-					size: 3, // 标注点位的大小 d- 5
-					solid: false // 标注点是否为实心 d- false
-				}
-			})
+		// 首先点位有自己的样式
+		const fcp = new FunctionPrinter(document.querySelector("#cvs"),{
+			events:['draw'],
+			points: { // 点位样式
+				size: 3, // 标注点位的大小 d- 5
+				solid: false // 标注点是否为实心 d- false
+			}
+		})
 			
-			// 调用绘制函数时需要添加一个点位过滤器
-			fcp.DrawFunction('y=2x+3',(x)=>{
-					return 2 * x + 3
-			},-1,'red',null,3, (x,y)=>{
-				// 显示所有x轴为整数的点位
-				if(Number.isInteger(x))
-				{
-					return true
-				}
-			})
+		// 调用绘制函数时需要添加一个点位过滤器
+		fcp.DrawFunction('y=2x+3',(x)=>{
+				return 2 * x + 3
+		},-1,'red',null,3, (x,y)=>{
+			// 显示所有x轴为整数的点位
+			if(Number.isInteger(x))
+			{
+				return true
+			}
+		})
 		```
 	
 	8. ##### 悬浮窗事件
@@ -326,71 +328,71 @@
 	
 	const fcp = new FunctionPrinter(document.querySelector("#cvs"),{
 		events:['draw','zoom','showtip'],
-				mark:{
-					x: { // 针对于x轴，如果是y轴则为y 参数保持一致
-						line:{
-							accuracy: 30, // 每一个刻度之间相隔的距离 (单位:px)
-							lineWidth: 1.5, // 标注刻度的粗细
-							width: 10,    // 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度
-							color: 'black'  // 刻度颜色 这个颜色可以是rgba或者十六进制颜色或者是canvas颜	色渐变类
-						},
-						font:{
-							size: 14,
-							weight: 1.5
-						},
-						accuracy: 1
-					}
+		mark:{
+			x: { // 针对于x轴，如果是y轴则为y 参数保持一致
+				line:{
+					accuracy: 30, // 每一个刻度之间相隔的距离 (单位:px)
+					lineWidth: 1.5, // 标注刻度的粗细
+					width: 10,    // 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度
+					color: 'black'  // 刻度颜色 这个颜色可以是rgba或者十六进制颜色或者是canvas颜	色渐变类
+					},
+				font:{
+					size: 14,
+					weight: 1.5
 				},
-				zoom: {// 缩放控制参数
-					max: 50, // 缩小程度最低值 d- 0
-					min: 10, // 放大程度最大值 d- 0
-					accuracy: 10 // 每次缩放增加或减少的步长
-				},
-				points: {
-					size: 3,
-					solid: false
-				},
-				tipline: { // 轴线标识参数
-					color: 'auto', // 线段颜色,可以指定颜色也可以选择auto自适应颜色 d- auto
-					type: 'dotted', // 线段的种类。目前提供的有两种分别是 dotted：虚线 chain：点划线。也可以自定义配置见下文说明 d- [4,2]
-					width: 3, // 线段粗细 d- 3
-					animate: true// 是否开启动画 d- false
-				},
-				accuracy:0.1
+				accuracy: 1
+			}
+		},
+		zoom: {// 缩放控制参数
+			max: 50, // 缩小程度最低值 d- 0
+			min: 10, // 放大程度最大值 d- 0
+			accuracy: 10 // 每次缩放增加或减少的步长
+		},
+		points: {
+			size: 3,
+			solid: false
+		},
+		tipline: { // 轴线标识参数
+			color: 'auto', // 线段颜色,可以指定颜色也可以选择auto自适应颜色 d- auto
+			type: 'dotted', // 线段的种类。目前提供的有两种分别是 dotted：虚线 chain：点划线。也可以自定义配置见下文说明 d- [4,2]
+			width: 3, // 线段粗细 d- 3
+			animate: true// 是否开启动画 d- false
+		},
+		accuracy:0.1
 	})
 
 	fcp.DrawFunction('y=2x+3',(x)=>{
-								return 2 * x + 2
-							},-1,'red',null,1.5,(x,y)=>{
-								// console.log(x)
-								if(Number.isInteger(x))
-								{
-									return true
-								}
-							},(key,color,x,y)=>{
-								return {key:key,x,y,color}
-							})
-			fcp.DrawFunction('y=-2x^2+3x+10',(x)=>{
-								return -2 * x * x + 3 *x + 10
-							},'middle','orange',null,1.5,(x,y)=>{
-								if(Number.isInteger(x))
-								{
-									return true
-								}
-							},(key,color,x,y)=>{
-								return {key:key,x,y,color}
-							})
+				return 2 * x + 2
+			},-1,'red',null,1.5,(x,y)=>{
+				// console.log(x)
+				if(Number.isInteger(x))
+				{
+					return true
+				}
+			},(key,color,x,y)=>{
+				return {key:key,x,y,color}
+	})
+	fcp.DrawFunction('y=-2x^2+3x+10',(x)=>{
+				return -2 * x * x + 3 *x + 10
+			},'middle','orange',null,1.5,(x,y)=>{
+				if(Number.isInteger(x))
+				{
+					return true
+				}
+			},(key,color,x,y)=>{
+				return {key:key,x,y,color}
+	})
 
-		fcp.DrawFunction('y=log(x)',function(x){
-					return Math.log(x)
-				},'queue','blue',null,1.5,(x,y)=>{
-							if(Number.isInteger(x))
-							{
-								return true
-							}
-						},(key,color,x,y)=>{
-							return {key,x,y,color}
-						})
+	fcp.DrawFunction('y=log(x)',function(x){
+				return Math.log(x)
+			},'queue','blue',null,1.5,(x,y)=>{
+				if(Number.isInteger(x))
+				{
+					return true
+				}
+			},(key,color,x,y)=>{
+					return {key,x,y,color}
+	})
 	
 ```
 
