@@ -12,8 +12,7 @@
 		
 		// 或者....
 		<script src="${projectUrl}/FunctionPrinter.js"></script>
-		
-
+	
 * ##### (假设有以下这样的一个代码)
   ```html
 			<body>
@@ -66,7 +65,7 @@
 				return 2 * x + 3
 			})
 		```
-				
+		
 	3. ##### 拖拽事件
 		
 		现在已经有了一个简单的一次函数图像了，但是不能一直使用这种静态的方式观察，我更想知道所有x轴的值对应的坐标应该是什么样的，那么就需要拖动图像。这一步其实很简单
@@ -151,7 +150,7 @@
 					accuracy: 10 // 每次缩放增加或减少的步长
 				}
 			})
-		```
+		 ```
 
 	6. ##### 函数图像样式
 		
@@ -232,50 +231,51 @@
 	9. ##### 轴线标识
 
 		既然已经有了悬浮窗提示但是可能不能够在图像上一目了然，接下来需要一个新的特性:轴线标识,能够更快的找到刻度对应点。
-		**** * 注： 这个也是需要开启点位标注才能打开的功能**
-
-		```javascript
-			const fcp = new FunctionPrinter(document.querySelector("#cvs"),{
-				events:['draw','zoom','showtip'],
-				mark:{
-					x: { // 针对于x轴，如果是y轴则为y 参数保持一致
-						line:{
-							accuracy: 30, // 每一个刻度之间相隔的距离 (单位:px)
-							lineWidth: 1.5, // 标注刻度的粗细
-							width: 10,    // 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度
-							color: 'black'  // 刻度颜色 这个颜色可以是rgba或者十六进制颜色或者是canvas颜	色渐变类
-						},
-						font:{
-							size: 14,
-							weight: 1.5
-						},
-						accuracy: 1
-					}
+		
+		* 注： 这个也是需要开启点位标注才能打开的功能**
+		
+	```javascript
+		const fcp = new FunctionPrinter(document.querySelector("#cvs"),{
+			events:['draw','zoom','showtip'],
+			mark:{
+				x: { // 针对于x轴，如果是y轴则为y 参数保持一致
+					line:{
+						accuracy: 30, // 每一个刻度之间相隔的距离 (单位:px)
+						lineWidth: 1.5, // 标注刻度的粗细
+						width: 10,    // 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度
+						color: 'black'  // 刻度颜色 这个颜色可以是rgba或者十六进制颜色或者是canvas颜	色渐变类
+					},
+					font:{
+						size: 14,
+						weight: 1.5
+					},
+					accuracy: 1
+				}
+			},
+			zoom: {// 缩放控制参数
+						max: 50, // 缩小程度最低值 d- 0
+						min: 10, // 放大程度最大值 d- 0
+						accuracy: 10 // 每次缩放增加或减少的步长
 				},
-				zoom: {// 缩放控制参数
-							max: 50, // 缩小程度最低值 d- 0
-							min: 10, // 放大程度最大值 d- 0
-							accuracy: 10 // 每次缩放增加或减少的步长
-					  },
-				points: {
-					size: 3,
-					solid: 0
-				},
-				tipline: { // 轴线标识参数
-					color: 'auto', // 线段颜色,可以指定颜色也可以选择auto自适应颜色 d- auto
-					type: 'dotted', // 线段的种类。目前提供的有两种分别是 dotted：虚线 chain：点划线。也可以自定义配置见下文说明 d- [4,2]
-					width: 3, // 线段粗细 d- 3
-					animate: false// 是否开启动画 d- false
-				},
+			points: {
+				size: 3,
+				solid: 0
+			},
+			tipline: { // 轴线标识参数
+				color: 'auto', // 线段颜色,可以指定颜色也可以选择auto自适应颜色 d- auto
+				type: 'dotted', // 线段的种类。目前提供的有两种分别是 dotted：虚线 chain：点划线。也可以自定义配置见下文说明 d- [4,2]
+				width: 3, // 线段粗细 d- 3
+				animate: false// 是否开启动画 d- false
+			},
 				// syncEle: window
-			})
-	 ```
+		})
+	```
 
 	 *更多线段种类 [参见canvas虚线样式](https://developer.mozilla.org/zh-CN/docs/Web/API/CanvasRenderingContext2D/setLineDash "线段样式")*
 	这样就更加显而易见了。当然也可以直接将animate开启动画使得图像更加生动~
-
+	
 	10. ##### 函数动画
-
+	
 		这种直接的图像呈现方式没有办法明白图像是如何经过点位的比如log函数，接下来我们来理解一下DrawFunction的动画参数基于上面的代码，添加一个快速动画显示的log函数
 			
 		```javascript
@@ -290,10 +290,10 @@
 			},(key,color,x,y)=>{
 				return {key,x,y,color}
 			})
-		```
+	 	
 
 #### 还有一些小细节
-	
+
 - **销毁**
 	- **删除函数调用fcp.RemoveFunction，两个参数分别是key和keep_animate。key则是DrawFunction中注册的key。因为RemoveFunction会使得画面重绘，所以保留的函数会重新渲染因此，keep_animate可以让重绘的函数保持动画渲染，当然也可以不开启这个状态**
 	- ** Destory函数将销毁所有的资源并解绑事件，清除画布**
@@ -313,7 +313,7 @@
 				return [16*Math.pow(Math.sin(x),3),13*Math.cos(x)-5*Math.cos(2*x)-2*Math.cos(3*x)-Math.cos(4*x)]
 			},'quick','red',null,1)
 	```
-	
+
 	这个时候你会发现可以是可以，但是画出来的线段有些顿，那是因为精度不够导致的问题。正好把最后遗漏的两个参数说明一下
 
 	```javascript
@@ -323,7 +323,7 @@
 		backgroundColor: '#ffffff' // String || CanvasGradient 背景颜色 d- #ffffff
 		...
 	})
-	 ```
+	```
 	
 ## ***实例代码***
 
