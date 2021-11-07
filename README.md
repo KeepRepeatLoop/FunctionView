@@ -15,7 +15,7 @@
 		<script src="${projectUrl}/FunctionPrinter.min.js"></script>
 	```
 	
-* ##### (假设有以下这样的一个代码)
+* ##### (假设有以下这样的一个代码) - Demo见目录:print.html
   ```html
 	<body>
 		<div id="parent" style="width:100%;height:100%;" >
