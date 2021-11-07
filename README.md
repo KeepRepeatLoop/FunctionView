@@ -7,6 +7,7 @@
 
 * ##### 导入模块 
 	```javascript
+		// npm i functionviewer
 		import FunctionPrinter from 'functionviewer'	
 		const FunctionPrinter = require('functionviewer')
 		
