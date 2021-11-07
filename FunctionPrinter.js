@@ -123,6 +123,7 @@
 								y:{line:{accuracy:mark.y.line.accuracy || 30,lineWidth:mark.y.line.lineWidth || 1.5,width: mark.y.line.width || 10,color:mark.y.line.color || '#000000'},font:{size:mark.y.font.size || 14,color:mark.y.font.color || '#000000',family:mark.y.font.family || '微软雅黑', weight: mark.y.font.weight || 1.5},accuracy:mark.y.accuracy || 1}}
 		this.__zoom_opts = {max:zoom.max || 0,min:zoom.min || 0,accuracy:zoom.accuracy || 0}
 		this.__events_opts = events
+		this.__samePointTimeOut = options.samePointTimeOut || 1800
 		if(points)
 			this.__point_opts = {size:points.size > 0 ? points.size : 5,solid:Boolean(points.solid)}
 		if(line)
@@ -140,13 +141,13 @@
 		this.__sync_ele = options.syncEle
 	}
 	
-	FunctionPrinter.prototype.AnimationDraw = function(lists,key,start){
+	FunctionPrinter.prototype.AnimationDraw = function(lists,key,start,draw_point){
 		lists = this.GetAnimationList(key,lists,start)
 		if(lists.findIndex(item=>!item.reline) === -1)
 			return
 		Array.prototype.push.apply(this.__animate_queue,lists.slice(1))
 		this.__animate_queue = this.__animate_queue.sort(function(_,$){return _.time - $.time})
-		this.CreateTimer(key)
+		this.CreateTimer(key,draw_point)
 	}
 	
 	FunctionPrinter.prototype.GetAnimationList = function(key,lists,start){
@@ -182,7 +183,7 @@
 		return lists
 	}
 	
-	FunctionPrinter.prototype.FastDraw = function(key){
+	FunctionPrinter.prototype.FastDraw = function(key,draw_point){
 		let list = [],id = null,_self=this,color=_self.__function_list[key].color,lineWidth = _self.__function_list[key].lineWidth,speed = _self.__function_list[key].animate,cache_time = 0
 		Array.prototype.push.apply(list,this.__fn_points_list[key])
 		list = this.GetAnimationList(key,list,0)
@@ -209,7 +210,8 @@
 			else
 			{
 				_self.__ctx.lineCap = 'butt'
-				_self.DrawPoint(key)
+				if(draw_point)
+					_self.DrawPoint(key)
 				window.cancelAnimationFrame(id)
 			}	
 		}
@@ -217,7 +219,7 @@
 		this.__timers.push(id)
 	}
 	
-	FunctionPrinter.prototype.BeginDraw = function(key,start,end,lastDraw,openAnimate){
+	FunctionPrinter.prototype.BeginDraw = function(key,start,end,lastDraw,openAnimate,draw_point){
 		let list = this.__fn_points_list[key],animation = this.__function_list[key].animate
 		if(list.length === 0)
 			return
@@ -225,36 +227,41 @@
 		{
 			if(lastDraw && animation === 0)
 			{
-				this.AnimationDraw(list.slice(start,end),key,start)
+				this.AnimationDraw(list.slice(start,end),key,start,draw_point)
 			}else{
-				this.FastDraw(key)
+				this.FastDraw(key,draw_point)
 			}
 		}else{
 			this.__ctx.strokeStyle = this.__function_list[key].color
 			this.__ctx.lineWidth = this.__function_list[key].lineWidth
 			this.__ctx.lineCap = 'round'
 			this.__ctx.beginPath()
-			this.__ctx.moveTo(list[start].pos.x,list[start].pos.y)
-			list.slice(start + 1,end).forEach((item,index)=>{
-				if(item.reline)
+			if(!list[start].reline)
+				this.__ctx.moveTo(list[start].pos.x,list[start].pos.y)
+			for(let index = start + 1; index < list.length; index++)
+			{
+				if(list[index].reline)
 				{
-					while((++index) < list.length)
+					let i = index
+					while((++i) < list.length)
 					{
-						if(!list[index])
+						if(!list[i])
 							break
-						else if(list[index].reline)
+						else if(list[i].reline)
 							continue
-						this.__ctx.moveTo(list[index].pos.x,list[index].pos.y)
+						this.__ctx.moveTo(list[i].pos.x,list[i].pos.y)
+						list.splice(index,i - index)
 						break
 					}
-					return
+					continue
 				}
-				this.__ctx.lineTo(item.pos.x,item.pos.y)
-			})
+				this.__ctx.lineTo(list[index].pos.x,list[index].pos.y)
+			}
 			this.__ctx.stroke()
 			this.__ctx.closePath()
 			this.__ctx.lineCap = 'butt'
-			this.DrawPoint(key)
+			if(draw_point)
+				this.DrawPoint(key)
 		}
 	}
 	
@@ -289,11 +296,11 @@
 				this.__fn_points_list[key].push({value:{x:x_value,y:y_value},pos:{x:this.__start_point[0] + (x_value - this.__start_point_values[0]) / accuracy_x * accuracyX + this.__offset_pos.x,y:this.__start_point[1] - (y_value - this.__start_point_values[1]) / accuracy_y * accuracyY + this.__offset_pos.y},reline:reline,scale:false,radius:pft(x_value,y_value) && this.__point_opts ? this.__point_opts.size : 0})
 				if(start === near_length && this.__function_list[key].animate)
 				{
-					this.BeginDraw(key,start - 6000,start,false,true)
+					this.BeginDraw(key,start - 6000,start,false,true,true)
 					near_length += 6000
 				}
 			}
-			this.BeginDraw(key,start > 6000 ? start - 6000 : 0,this.__fn_points_list[key].length,true,true)
+			this.BeginDraw(key,start > 6000 ? start - 6000 : 0,this.__fn_points_list[key].length,true,true,true)
 		}
 	}
 	
@@ -302,15 +309,15 @@
 			return
 		let points = this.__fn_points_list[key],self=this,color = self.__ctx.strokeStyle
 		points.forEach((item)=>{
-			if(item.reline && item.radius > 0)
+			if(item.reline && item.radius > 0 || item.hidden)
 				return
 			self.__ctx.beginPath()
 			self.__ctx.strokeStyle = self.__point_opts.solid ? 'transparent' : self.__function_list[key].color
 			self.__ctx.arc(item.pos.x,item.pos.y,item.radius,0,Math.PI * 2,true)
 			if(self.__point_opts.solid)
-				self.__ctx.fillStyle = self.__function_list[key].pointColor || self.__function_list[key].color
+				self.__ctx.fillStyle = item._color || self.__function_list[key].pointColor || self.__function_list[key].color
 			else
-				self.__ctx.fillStyle = self.__function_list[key].pointColor || '#ffffff'
+				self.__ctx.fillStyle = item._color || self.__function_list[key].pointColor || '#ffffff'
 			self.__ctx.fill()
 			self.__ctx.stroke()
 			self.__ctx.closePath()
@@ -348,8 +355,8 @@
 		return task_reslove
 	}
 	
-	FunctionPrinter.prototype.CreateTimer = function(key){
-		if(this.__key_queue.indexOf(key) === -1)
+	FunctionPrinter.prototype.CreateTimer = function(key,draw_point){
+		if(this.__key_queue.indexOf(key) === -1 && draw_point)
 			this.__key_queue.push(key)
 		if(this.__animate_id)
 			return
@@ -402,7 +409,7 @@
 			setTimeout(()=>{
 				this.__update_animate_flag = true
 				for(let key in this.__fn_points_list)
-					this.BeginDraw(key,0,this.__fn_points_list[key].length,true,keep_animate)
+					this.BeginDraw(key,0,this.__fn_points_list[key].length,true,keep_animate,true)
 			},300)
 		}
 	}
@@ -410,6 +417,67 @@
 	FunctionPrinter.prototype.Clear = function(){
 		this.__ctx.clearRect(0,0,this.__cvs_wdt,this.__cvs_hgt)
 	}
+	
+	FunctionPrinter.prototype.DrawLine = function(point)
+	{
+		let timer = null,self=this,most_offset = self.__line_opts.type.reduce((a,b)=>{return a * b}),offset = 0,color = self.__line_opts.color === 'auto' ? self.__function_list[point.key].color : self.__line_opts.color,fn = self.__line_opts.animate ? _DrawLine : new Function()
+		function _DrawLine()
+		{
+			if(self.__select_point.scale && self.__select_point.value.x === point.value.x && self.__select_point.value.y === point.value.y && self.__start_point[0] !== point.pos.x && self.__start_point[1] !== point.pos.y && point.key === self.__select_point.key)
+			{
+				self.ScalePoint(self.__select_point,radius + radius * 0.5,0)(0)
+				self.__ctx.setLineDash(self.__line_opts.type)
+				self.__ctx.lineDashOffset = offset
+				self.__ctx.lineWidth = self.__line_opts.width
+				self.__ctx.beginPath()
+				self.__ctx.strokeStyle = color
+				self.__ctx.moveTo(point.pos.x,self.__start_point[1])
+				self.__ctx.lineTo(point.pos.x,point.pos.y + (point.pos.y - self.__start_point[1] > 0 ? - radius * 2 - 2 : radius * 2 + 2))
+				self.__ctx.moveTo(self.__start_point[0],point.pos.y)
+				self.__ctx.lineTo(point.pos.x + (point.pos.x - self.__start_point[0] > 0 ? - radius * 2 - 2 : radius * 2 + 2),point.pos.y)
+				self.__ctx.stroke()
+				self.__ctx.closePath()
+				self.__ctx.setLineDash([])
+				offset++
+				if(offset > most_offset)
+					offset = 0
+				timer = setTimeout(fn,10)
+			}else{
+				clearTimeout(timer)
+			}
+		}
+		return _DrawLine
+	}
+	
+	FunctionPrinter.prototype.ScalePoint = function(point,distance,_time){
+			let timer = null,self = this,start_time = Date.now(),target = distance + self.__select_point.radius
+			
+			function easeOut(t,b,c,d){return -c *(t/=d)*(t-2) + b}
+			
+			function _ScalePoint(time)
+			{
+				self.__update_animate_flag = true
+				self.Clear()
+				self.SetBackground()
+				self.DrawAxis()
+				self.DrawMark(posX,posY,pos_x_line,pos_y_line)
+				for(let key in self.__fn_points_list)
+					self.BeginDraw(key,0,self.__fn_points_list.length,true,false,false)
+				for(let key in self.__fn_points_list)
+					self.DrawPoint(key)
+				if(self.__select_point.radius < distance && self.__select_point.scale && time > 0)
+				{
+					self.__select_point.radius = easeOut(Date.now() - start_time,self.__select_point.radius,target,_time)
+					timer = window.requestAnimationFrame(_ScalePoint)
+				}
+				else if(time > 0)
+				{
+					self.DrawLine(point)()
+					window.cancelAnimationFrame(timer)
+				}
+			}
+			return _ScalePoint
+		}
 	
 	FunctionPrinter.prototype.BindEvent = function(){
 		const self = this
@@ -419,8 +487,8 @@
 		xAccuracy = self.__cvs_mark_opts.x.accuracy,yAccuracy = self.__cvs_mark_opts.y.accuracy,
 		x_line_width = this.__cvs_mark_opts.x.line.width,y_line_width = this.__cvs_mark_opts.y.line.width,
 		posX = 0,posY = 0,pos_x_line = x_line_width,pos_y_line = y_line_width,
-		timer = null,zoom_accuracy = this.__zoom_opts.accuracy,max_zoom = this.__zoom_opts.max,min_zoom = this.__zoom_opts.min,select_point = {},
-		showTip = this.__events_opts.indexOf('showtip') > -1,radius = self.__point_opts ? self.__point_opts.size : 0,child_element = null
+		timer = null,zoom_accuracy = this.__zoom_opts.accuracy,max_zoom = this.__zoom_opts.max,min_zoom = this.__zoom_opts.min,
+		showTip = this.__events_opts.indexOf('showtip') > -1,radius = self.__point_opts ? self.__point_opts.size : 0,child_element = null,select_list = [],loop_timer = null
 		if(showTip)
 		{
 			const parentElement = this.__cvs.parentElement
@@ -437,6 +505,25 @@
 			cache_position.x = self.__event_type ? e.changedTouches[0].pageX : e.offsetX
 			cache_position.y = self.__event_type ? e.changedTouches[0].pageY : e.offsetY
 			catch_flag = true
+		}
+		
+		function SetText(color,key,x,y){
+			child_element.innerHTML = `
+				<div style="width: 15px;heidivght: 100%;">
+					<div style="width: 100%;height: 15px;border-radius: 50%;background-color: ${color};"></div>
+				</div>
+				<div style="width: calc(100% - 15px);box-sizing: border-box;padding-left:10px;padding-right: 10px;color: #ffffff;overflow: hidden;">
+					<div style="vertical-align: middle;line-height: 1;margin-bottom: 10px;word-break: break-all;">
+						${key}
+					</div>
+					<div style="vertical-align: middle;line-height: 1;margin-bottom: 10px;word-break: break-all;">
+						x = ${x}
+					</div>
+					<div style="vertical-align: middle;line-height: 1;word-break: break-all;">
+						y = ${y}
+					</div>
+				</div>
+			`
 		}
 		
 		function move(e){
@@ -501,6 +588,25 @@
 				cache_position.x = x
 				cache_position.y = y
 			}else if(self.__point_opts){
+				select_list.forEach((item)=>{
+					if(!self.__fn_points_list[item.key][item.index])
+						return
+					self.__fn_points_list[item.key][item.index].radius = radius;
+					delete self.__fn_points_list[item.key][item.index].display
+				})
+				select_list = []
+				for(let key in self.__fn_points_list)
+				{
+					let index = self.__fn_points_list[key].findIndex(function(item){
+						if(e.offsetX <= item.pos.x + radius + 5 && e.offsetX >= item.pos.x - radius - 5 && e.offsetY <= item.pos.y + radius + 5 && e.offsetY >= item.pos.y - radius - 5 && typeof(item.value.x) === "number" && item.radius > 0)
+						{
+							return true
+						}
+						return false
+					})
+					if(index > -1)
+						select_list.push({key,index})
+				}
 				for(let key in self.__fn_points_list)
 				{
 					let index = self.__fn_points_list[key].findIndex(function(item){
@@ -513,41 +619,18 @@
 					if(index > -1)
 					{
 						self.__update_animate_flag = false
-						if(select_point.key === key && select_point.index === index)
+						if(self.__select_point.key === key && self.__select_point.index === index)
 							return
-						select_point.radius = radius
-						select_point.scale = false
-						select_point = self.__fn_points_list[key][index]
-						select_point.key = key
-						select_point.index = index
-						select_point.scale = true
+						
+						self.__select_point.radius = radius
+						self.__select_point.scale = false
+						self.__select_point = self.__fn_points_list[key][index]
+						self.__select_point.key = key
+						self.__select_point.index = index
+						self.__select_point.scale = true
 						if(showTip)
 						{
-							let color = self.__function_list[key].color,x = select_point.value.x,y = select_point.value.y
-							if(self.__function_list[key].tck)
-							{
-								const result = self.__function_list[key].tck(key,color,x,y)
-								color = result.color || color
-								key = result.key || key
-								x = result.x || x
-								y = result.y || y
-							}
-							child_element.innerHTML = `
-								<div style="width: 15px;heidivght: 100%;">
-									<div style="width: 100%;height: 15px;border-radius: 50%;background-color: ${color};"></div>
-								</div>
-								<div style="width: calc(100% - 15px);box-sizing: border-box;padding-left:10px;padding-right: 10px;color: #ffffff;overflow: hidden;">
-									<div style="vertical-align: middle;line-height: 1;margin-bottom: 10px;word-break: break-all;">
-										${key}
-									</div>
-									<div style="vertical-align: middle;line-height: 1;margin-bottom: 10px;word-break: break-all;">
-										x = ${x}
-									</div>
-									<div style="vertical-align: middle;line-height: 1;word-break: break-all;">
-										y = ${y}
-									</div>
-								</div>
-							`
+							clearInterval(loop_timer)
 							child_element.style.visibility = 'visible'
 							child_element.style.opacity = 1
 							let $x = e.offsetX + 10,$y = self.__cvs_hgt - e.offsetY - 20
@@ -561,91 +644,71 @@
 								$y = self.__cvs_hgt - Math.abs(e.offsetY - child_element.offsetHeight - 15)
 							}
 							child_element.style.transform = `translate3d(${$x}px, -${$y}px, 0px)`
+							if(select_list.length > 1)
+							{
+								loop_timer = setInterval((function(list){
+									let i = 0
+									list.forEach((item)=>{self.__fn_points_list[item.key][item.index].radius = radius;self.__fn_points_list[item.key][item.index].scale = false;self.__fn_points_list[item.key][item.index].hidden = true})
+									function ChangeTip(){
+										let key = list[i].key,color = self.__function_list[key].color,x = self.__select_point.value.x,y = self.__select_point.value.y
+										if(self.__function_list[key].tck)
+										{
+											const result = self.__function_list[key].tck(key,color,x,y)
+											color = result.color || color
+											key = result.key || key
+											x = result.x || x
+											y = result.y || y
+										}
+										self.__select_point.radius = radius
+										self.__select_point.scale = false
+										self.__select_point.hidden = true
+										self.__select_point = self.__fn_points_list[list[i].key][list[i].index]
+										self.__select_point.key = key
+										self.__select_point.index = index
+										self.__select_point.scale = true
+										self.__select_point.hidden = false
+										self.__timers.push(window.requestAnimationFrame(self.ScalePoint(self.__select_point,radius + radius * 0.5,30000)))
+										SetText(color,key,x,y)
+										i++
+										if(i >= select_list.length)
+											i = 0
+									}
+									ChangeTip()
+									return ChangeTip
+								})(select_list),self.__samePointTimeOut)
+							}else
+							{
+								let color = self.__function_list[key].color,x = self.__select_point.value.x,y = self.__select_point.value.y
+								if(self.__function_list[key].tck)
+								{
+									const result = self.__function_list[key].tck(key,color,x,y)
+									color = result.color || color
+									key = result.key || key
+									x = result.x || x
+									y = result.y || y
+								}
+								SetText(color,key,x,y)
+							}
 						}
-						if(self.__line_opts)
-						{
-							DrawLine(select_point)()
-							return
-						}
-						self.__timers.push(window.requestAnimationFrame(ScalePoint(select_point,radius + radius * 0.5,3000)))
+						self.__timers.push(window.requestAnimationFrame(self.ScalePoint(self.__select_point,radius + radius * 0.5,30000)))
 						return
 					}
 				}
-				if(select_point.scale)
+				if(self.__select_point.scale)
 				{
-					select_point.scale = false
-					select_point.radius = radius
-					window.requestAnimationFrame(ScalePoint(select_point,5,1000))
+					self.__select_point.scale = false
+					self.__select_point.radius = radius
+					clearInterval(loop_timer)
+					window.requestAnimationFrame(self.ScalePoint(self.__select_point,5,1000))
 				}
-				select_point = {scale:false,radius:radius,value:{}}
-				select_point.key = select_point.index = null
+				self.__select_point = {scale:false,radius:radius,value:{}}
+				self.__select_point.key = self.__select_point.index = null
 				if(showTip)
 				{
 					child_element.style.opacity = 0
 					child_element.style.visibility = 'hidden'
 				}
 			}
-		}
-		
-		function DrawLine(point)
-		{
-			let timer = null,most_offset = self.__line_opts.type.reduce((a,b)=>{return a * b}),offset = 0,color = self.__line_opts.color === 'auto' ? self.__function_list[point.key].color : self.__line_opts.color,fn = self.__line_opts.animate ? _DrawLine : new Function()
-			function _DrawLine()
-			{
-				if(select_point.scale && select_point.value.x === point.value.x && select_point.value.y === point.value.y && self.__start_point[0] !== point.pos.x && self.__start_point[1] !== point.pos.y)
-				{
-					if(self.__line_opts.animate)
-						ScalePoint(select_point,radius + radius * 0.5,3000)()
-					else
-						ScalePoint(select_point,radius + radius * 0.5,1000)()
-					self.__ctx.setLineDash(self.__line_opts.type)
-					self.__ctx.lineDashOffset = offset
-					self.__ctx.lineWidth = self.__line_opts.width
-					self.__ctx.beginPath()
-					self.__ctx.strokeStyle = color
-					self.__ctx.moveTo(point.pos.x,self.__start_point[1])
-					self.__ctx.lineTo(point.pos.x,point.pos.y + (point.pos.y - self.__start_point[1] > 0 ? - radius * 2 - 2 : radius * 2 + 2))
-					self.__ctx.moveTo(self.__start_point[0],point.pos.y)
-					self.__ctx.lineTo(point.pos.x + (point.pos.x - self.__start_point[0] > 0 ? - radius * 2 - 2 : radius * 2 + 2),point.pos.y)
-					self.__ctx.stroke()
-					self.__ctx.closePath()
-					self.__ctx.setLineDash([])
-					offset++
-					if(offset > most_offset)
-						offset = 0
-					timer = setTimeout(fn,10)
-				}else{
-					clearTimeout(timer)
-				}
-			}
-			return _DrawLine
-		}
-		
-		function ScalePoint(point,distance,_time){
-			let timer = null,start_time = Date.now(),target = distance + select_point.radius
-			
-			function easeOut(t,b,c,d){return -c *(t/=d)*(t-2) + b}
-			
-			function _ScalePoint(time,_a)
-			{
-				self.__update_animate_flag = true
-				self.Clear()
-				self.SetBackground()
-				self.DrawAxis()
-				self.DrawMark(posX,posY,pos_x_line,pos_y_line)
-				for(let key in self.__fn_points_list)
-					self.BeginDraw(key,0,self.__fn_points_list.length,true,false)
-				if(select_point.radius < distance && select_point.scale)
-				{
-					select_point.radius = easeOut(Date.now() - start_time,select_point.radius,target,_time)
-					timer = window.requestAnimationFrame(_ScalePoint)
-				}
-				else
-				{
-					window.cancelAnimationFrame(timer)
-				}
-			}
-			return _ScalePoint
 		}
 		
 		function up(e){
@@ -755,8 +818,8 @@
 				self.__cvs.removeEventListener('mousedown',move)
 				if(_flag)
 				{
-					select_point = {scale:false,radius:radius,value:{}}
-					select_point.key = select_point.index = null
+					self.__select_point = {scale:false,radius:radius,value:{}}
+					self.__select_point.key = self.__select_point.index = null
 					if(showTip)
 					{
 						child_element.style.opacity = 0
@@ -801,6 +864,7 @@
 		this.__start_point_values = [0,0]
 		this.__maximum_point = {x:[0,0],y:[0,0]}
 		this.__function_list = {}
+		this.__select_point = {}
 		this.__animate_id = null
 		this.__cache_time = 0
 		this.__animate_queue = []

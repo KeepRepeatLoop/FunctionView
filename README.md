@@ -89,7 +89,7 @@
 					line:{
 						accuracy: 10, // 每一个刻度之间相隔的距离 (单位:px) d- 14
 						lineWidth: 1.5, // 标注刻度的粗细 d- 1.5
-						width: 10,    // 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度 d- 10
+						width: 10,// 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度 d- 10
 						color: 'red'  // 标注刻度线段颜色 这个颜色可以是rgba或者十六进制颜色或者是canvas颜色渐变类 d- '#000000'
 					},
 					font:{ // 刻度字参数
@@ -133,7 +133,7 @@
 					line:{
 						accuracy: 10, // 每一个刻度之间相隔的距离 (单位:px) d- 14
 						lineWidth: 1.5, // 标注刻度的粗细 d- 1.5
-						width: 10,    // 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度 d- 10
+						width: 10,// 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度 d- 10
 						color: 'red'  // 标注刻度线段颜色 这个颜色可以是rgba或者十六进制颜色或者是canvas颜色渐变类 d- '#000000'
 					},
 					font:{ // 刻度字参数
@@ -243,7 +243,7 @@
 				line:{
 					accuracy: 30, // 每一个刻度之间相隔的距离 (单位:px)
 					lineWidth: 1.5, // 标注刻度的粗细
-					width: 10,    // 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度
+					width: 10,// 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度
 					color: 'black'  // 刻度颜色 这个颜色可以是rgba或者十六进制颜色或者是canvas颜	色渐变类
 				},
 				font:{
@@ -327,42 +327,71 @@
 	})
 	```
 	
-## ***实例代码***
+## ***最佳实践***
 
 ```javascript
-const fcp = new FunctionPrinter(document.querySelector("#cvs"),{
-	events:['draw','zoom','showtip'],
-	mark:{
-		x: { // 针对于x轴，如果是y轴则为y 参数保持一致
-			line:{
-				accuracy: 30, // 每一个刻度之间相隔的距离 (单位:px)
-				lineWidth: 1.5, // 标注刻度的粗细
-				width: 10,    // 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度
-				color: 'black'  // 刻度颜色 这个颜色可以是rgba或者十六进制颜色或者是canvas颜	色渐变类
+const fcp = new FunctionPrinter(document.querySelector("#cvs"), {
+		events: ['draw', 'zoom', 'showtip'],
+		mark: {
+			x: { // 针对于x轴，如果是y轴则为y 参数保持一致
+				line: {
+					accuracy: 30, // 每一个刻度之间相隔的距离 (单位:px)
+					lineWidth: 1, // 标注刻度的粗细
+					width: 10, // 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度
+					color: 'black' // 刻度颜色 这个颜色可以是rgba或者十六进制颜色或者是canvas颜	色渐变类
 				},
-			font:{
-				size: 14,
-				weight: 1.5
+				font: {
+					size: 14,
+					weight: 1,
+					color:'#303133',
+					weight:1.2
+				},
+				accuracy: 1
 			},
-			accuracy: 1
-		}
-	},
-	zoom: {// 缩放控制参数
-		max: 50, // 缩小程度最低值 d- 0
-		min: 10, // 放大程度最大值 d- 0
-		accuracy: 10 // 每次缩放增加或减少的步长
-	},
-	points: {
-		size: 3,
-		solid: false
-	},
-	tipline: { // 轴线标识参数
-		color: 'auto', // 线段颜色,可以指定颜色也可以选择auto自适应颜色 d- auto
-		type: 'dotted', // 线段的种类。目前提供的有两种分别是 dotted：虚线 chain：点划线。也可以自定义配置见下文说明 d- [4,2]
-		width: 3, // 线段粗细 d- 3
-		animate: true// 是否开启动画 d- false
-	},
-	accuracy:0.1
+			y: { // 针对于x轴，如果是y轴则为y 参数保持一致
+				line: {
+					accuracy: 30, // 每一个刻度之间相隔的距离 (单位:px)
+					lineWidth: 1, // 标注刻度的粗细
+					width: 10, // 对于x轴来说即标注刻度线段的高度，对于y来说则为宽度
+					color: 'black' // 刻度颜色 这个颜色可以是rgba或者十六进制颜色或者是canvas颜	色渐变类
+				},
+				font: {
+					size: 14,
+					weight: 1,
+					color:'#303133',
+					weight:1.2
+				},
+				accuracy: 1
+			}
+			,
+		zoom: { // 缩放控制参数
+			max: 50, // 缩小程度最低值 d- 0
+			min: 10, // 放大程度最大值 d- 0
+			accuracy: 10 // 每次缩放增加或减少的步长
+		},
+		points: {
+			size: 3,
+			solid: 0
+		},
+		axis:{ // 轴样式配置和mark参数一样，有x和y两个参数
+				x:{ // x轴样式
+					color: 'black', // 轴线段的颜色 d- '#000000'
+					lineWidth: 1.2 // 轴线段的粗细 d- 1.5 
+				},
+				y:{ // y轴样式
+					color: 'black', // 轴线段的颜色 d- '#000000'
+					lineWidth: 1.2 // 轴线段的粗细 d- 1.5 
+				}									
+			},
+		tipline: { // 轴线标识参数
+			color: 'auto', // 线段颜色,可以指定颜色也可以选择auto自适应颜色 d- auto
+			type: 'dotted', // 线段的种类。目前提供的有两种分别是 dotted：虚线 chain：点划线。也可以自定义配置见下文说明 d- [4,2]
+			width: 3, // 线段粗细 d- 3
+			animate: 1 // 是否开启动画 d- false
+		},
+		accuracy: 0.1,
+		backgroundColor:'#f3f4f6',
+		samePointTimeOut:1800 // 相同点延时时间切换
 })
 
 fcp.DrawFunction('y=2x+3',(x)=>{
